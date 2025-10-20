@@ -1,8 +1,8 @@
 import dedent from 'dedent'
+import { SystemMessage, BaseMessage, AIMessage } from '@langchain/core/messages'
 import { ChatOpenAI } from '@langchain/openai'
-import { SystemMessage, HumanMessage, BaseMessage, AIMessage, AIMessageChunk } from '@langchain/core/messages'
 
-import { config } from '@config/config.js'
+import { config } from '@/config.js'
 
 const SYSTEM_PROMPT = dedent`
   You are PodBot, an enthusiastic podcast expert and recommendation engine.

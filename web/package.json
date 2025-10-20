@@ -1,0 +1,20 @@
+{
+  "name": "@podbot/web",
+  "version": "0.0.0",
+  "description": "Azure Static Web App for PodBot",
+  "author": "Guy Royse <guy@guy.dev>",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "swa start dist --port 4280 --api-location http://localhost:7071",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vite": "^7.1.7"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.0.1",
+    "marked": "^16.3.0"
+  }
+}

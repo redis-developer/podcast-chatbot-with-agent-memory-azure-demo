@@ -1,5 +1,6 @@
 # Environment Variables
 .env
+api/local.settings.json
 
 # Node.js
 node_modules/
@@ -7,9 +8,15 @@ node_modules/
 # Build outputs
 chat-api/dist/
 chat-web/dist/
+api/dist/
+web/dist/
 
 # IDE files
 .claude/
 
 # Redis data
 redis/dump.rdb
+
+# Azure
+.azure/
+*.azureauth

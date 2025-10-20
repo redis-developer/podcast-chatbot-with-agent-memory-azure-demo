@@ -1,13 +1,9 @@
-import {
-  readWorkingMemory,
-  replaceWorkingMemory,
-  removeWorkingMemory,
-  AmsMessage,
-  AmsRole
-} from '@/adapters/memory-server.js'
-import { generateResponse } from '../adapters/agent-adapter.js'
-import { config } from '@config/config.js'
 import { AIMessage, BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages'
+
+import type { AmsMessage } from './memory-server.js'
+import { config } from '@/config.js'
+import { generateResponse } from './agent-adapter.js'
+import { readWorkingMemory, replaceWorkingMemory, removeWorkingMemory, AmsRole } from './memory-server.js'
 
 enum ChatRole {
   SUMMARY = 'summary',

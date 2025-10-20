@@ -25,28 +25,3 @@ services:
     depends_on:
       - redis
     restart: unless-stopped
-
-  chat-api:
-    build: ./chat-api
-    container_name: podbot-chat-api
-    ports:
-      - '${PORT:-3001}:${PORT:-3001}'
-    env_file:
-      - .env
-    environment:
-      - PORT=${PORT:-3001}
-      - AMS_BASE_URL=http://agent-memory-server:8000
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - AMS_CONTEXT_WINDOW_MAX=${AMS_CONTEXT_WINDOW_MAX:-4000}
-    depends_on:
-      - agent-memory-server
-    restart: unless-stopped
-
-  chat-web:
-    build: ./chat-web
-    container_name: podbot-chat-web
-    ports:
-      - '3000:80'
-    depends_on:
-      - chat-api
-    restart: unless-stopped

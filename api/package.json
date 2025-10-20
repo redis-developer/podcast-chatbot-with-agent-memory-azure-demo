@@ -1,31 +1,25 @@
 {
-  "name": "chat-api",
+  "name": "@podbot/api",
   "version": "1.0.0",
-  "description": "",
+  "description": "Azure Functions API for PodBot",
   "author": "Guy Royse <guy@guy.dev>",
   "license": "MIT",
   "type": "module",
+  "main": "dist/main.js",
   "scripts": {
-    "build": "tsc && tsc-alias",
-    "dev": "nodemon --exec tsx src/main.ts",
-    "start": "node dist/main.js"
+    "dev": "func start",
+    "build": "tsc && tsc-alias"
   },
   "dependencies": {
+    "@azure/functions": "^4.5.0",
     "@langchain/core": "^0.3.77",
     "@langchain/openai": "^0.6.13",
-    "cors": "^2.8.5",
-    "dedent": "^1.7.0",
-    "dotenv": "^17.2.2",
-    "express": "^5.1.0"
+    "dedent": "^1.7.0"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
     "@types/dedent": "^0.7.2",
-    "@types/express": "^5.0.3",
     "@types/node": "^24.5.2",
-    "nodemon": "^3.1.10",
     "tsc-alias": "^1.8.16",
-    "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   }
 }

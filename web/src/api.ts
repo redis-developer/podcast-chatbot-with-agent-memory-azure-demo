@@ -1,6 +1,6 @@
 import type { ChatRequest, ChatResponse, SessionHistoryResponse } from './types';
 
-const API_BASE_URL = '';
+const API_BASE_URL = '/api';
 
 class ApiError extends Error {
   status?: number;
