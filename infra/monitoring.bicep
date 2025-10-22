@@ -17,7 +17,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
 
 // Application Insights - application monitoring and telemetry
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: 'appi-${resourceToken}'
+  name: 'app-insights-${resourceToken}'
   location: location
   kind: 'web'
   properties: {

@@ -2,8 +2,13 @@
 
 name: podbot-azure
 
+infra:
+  provider: bicep
+  path: infra
+  module: main
+
 services:
   web:
-    project: .
+    project: ./web
     language: ts
     host: staticwebapp

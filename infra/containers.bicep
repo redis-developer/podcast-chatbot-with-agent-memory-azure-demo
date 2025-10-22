@@ -6,7 +6,7 @@ param logAnalyticsWorkspaceId string
 
 // Container Apps Environment
 resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2025-07-01' = {
-  name: 'cae-${resourceToken}'
+  name: 'container-apps-env-${resourceToken}'
   location: location
   properties: {
     appLogsConfiguration: {

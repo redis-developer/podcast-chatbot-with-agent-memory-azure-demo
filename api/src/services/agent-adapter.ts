@@ -1,7 +1,6 @@
 import dedent from 'dedent'
 import { SystemMessage, BaseMessage, AIMessage } from '@langchain/core/messages'
 import { ChatOpenAI, AzureChatOpenAI } from '@langchain/openai'
-import { DefaultAzureCredential, getBearerTokenProvider } from '@azure/identity'
 
 import { config } from '@/config.js'
 
@@ -57,10 +56,7 @@ function createLocalLLM(): ChatOpenAI {
 
 function createAzureLLM(): ChatOpenAI {
   return new AzureChatOpenAI({
-    azureADTokenProvider: getBearerTokenProvider(
-      new DefaultAzureCredential(),
-      'https://cognitiveservices.azure.com/.default'
-    ),
+    azureOpenAIApiKey: config.azureOpenAIApiKey,
     azureOpenAIEndpoint: config.azureOpenAIEndpoint,
     azureOpenAIApiDeploymentName: config.azureOpenAIDeployment,
     temperature: 0.7

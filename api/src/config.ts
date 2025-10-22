@@ -7,10 +7,10 @@ export const config = {
   // OpenAI (local development)
   openaiApiKey: process.env.OPENAI_API_KEY,
 
-  // Azure OpenAI (production with managed identity)
+  // Azure OpenAI (production with API key)
   azureOpenAIEndpoint: process.env.AZURE_OPENAI_ENDPOINT,
   azureOpenAIDeployment: process.env.AZURE_OPENAI_DEPLOYMENT,
-  azureClientId: process.env.AZURE_CLIENT_ID,
+  azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
 
   // AMS
   amsBaseUrl: process.env.AMS_BASE_URL ?? 'http://localhost:8000',

@@ -1,8 +1,7 @@
 param resourceToken string
-param functionsPrincipalId string
 
 // Azure OpenAI Service
-var accountName = 'oai-${resourceToken}'
+var accountName = 'openai-${resourceToken}'
 var location = resourceGroup().location
 
 resource openAiAccount 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
@@ -76,21 +75,6 @@ resource embeddingDeployment 'Microsoft.CognitiveServices/accounts/deployments@2
   dependsOn: [
     gpt4oMiniDeployment
   ]
-}
-
-// Assign Cognitive Services OpenAI User role to the Functions identity
-var cognitiveServicesOpenAIUserRoleId = '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
-var functionsRoleAssignmentName = guid(openAiAccount.id, functionsPrincipalId, cognitiveServicesOpenAIUserRoleId)
-var roleDefinitionId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesOpenAIUserRoleId)
-
-resource functionsRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: functionsRoleAssignmentName
-  scope: openAiAccount
-  properties: {
-    roleDefinitionId: roleDefinitionId
-    principalId: functionsPrincipalId
-    principalType: 'ServicePrincipal'
-  }
 }
 
 // Outputs

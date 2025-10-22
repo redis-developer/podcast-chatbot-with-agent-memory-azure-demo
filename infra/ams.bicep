@@ -11,7 +11,7 @@ param tenantId string
 
 // Agent Memory Server Container App
 resource ams 'Microsoft.App/containerApps@2025-07-01' = {
-  name: 'ca-ams-${resourceToken}'
+  name: 'ams-${resourceToken}'
   location: location
   properties: {
     managedEnvironmentId: containerAppsEnvironmentId
@@ -27,7 +27,7 @@ resource ams 'Microsoft.App/containerApps@2025-07-01' = {
       containers: [
         {
           name: 'ams'
-          image: 'redis/agent-memory-server:latest'
+          image: 'redislabs/agent-memory-server:latest'
           resources: {
             cpu: json('0.5')
             memory: '1Gi'

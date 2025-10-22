@@ -9,7 +9,6 @@ resource redisEnterprise 'Microsoft.Cache/redisEnterprise@2025-07-01' = {
   location: location
   sku: {
     name: 'Balanced_B1'
-    capacity: 2
   }
   properties: {
     minimumTlsVersion: '1.2'
@@ -45,4 +44,5 @@ output name string = redisEnterprise.name
 output hostName string = redisEnterprise.properties.hostName
 output port int = database.properties.port
 output databaseId string = database.id
-output connectionString string = 'rediss://:${redisEnterprise.listKeys().primaryKey}@${redisEnterprise.properties.hostName}:${database.properties.port}'
+output primaryKey string = database.listKeys().primaryKey
+output connectionString string = 'rediss://:${database.listKeys().primaryKey}@${redisEnterprise.properties.hostName}:${database.properties.port}'

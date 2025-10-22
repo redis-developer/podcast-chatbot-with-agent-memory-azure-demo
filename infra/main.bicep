@@ -1,4 +1,4 @@
-targetScope = 'subscription'
+targetScope = 'resourceGroup'
 
 @description('Name of the environment which is used to generate a short unique hash used in all resources.')
 @allowed(['stage', 'prod'])
@@ -6,18 +6,9 @@ param environmentName string
 
 @minLength(1)
 @description('Primary location for all resources')
-param location string
+param location string = resourceGroup().location
 
-var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
-
-// ==============================================================================
-// FOUNDATION: Resource Group
-// ==============================================================================
-
-resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: 'rg-${environmentName}'
-  location: location
-}
+var resourceToken = toLower(uniqueString(resourceGroup().id, environmentName, location))
 
 // ==============================================================================
 // ENVIRONMENT: Shared Infrastructure & Services
@@ -26,7 +17,6 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 // Container Apps environment for hosting AMS
 module containerAppsEnvironment './containers.bicep' = {
   name: 'container-apps-env'
-  scope: resourceGroup
   params: {
     resourceToken: resourceToken
     logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsWorkspaceId
@@ -36,7 +26,6 @@ module containerAppsEnvironment './containers.bicep' = {
 // Monitor application with Azure Monitor (Application Insights)
 module monitoring './monitoring.bicep' = {
   name: 'monitoring'
-  scope: resourceGroup
   params: {
     resourceToken: resourceToken
   }
@@ -45,7 +34,6 @@ module monitoring './monitoring.bicep' = {
 // User-assigned managed identities
 module identities './identities.bicep' = {
   name: 'identities'
-  scope: resourceGroup
   params: {
     resourceToken: resourceToken
   }
@@ -58,17 +46,14 @@ module identities './identities.bicep' = {
 // Azure OpenAI Service
 module openAi './openai.bicep' = {
   name: 'openai'
-  scope: resourceGroup
   params: {
     resourceToken: resourceToken
-    functionsPrincipalId: identities.outputs.functionsPrincipalId
   }
 }
 
 // Azure Managed Redis (Redis Enterprise)
 module redis './redis.bicep' = {
   name: 'redis'
-  scope: resourceGroup
   params: {
     resourceToken: resourceToken
   }
@@ -77,7 +62,6 @@ module redis './redis.bicep' = {
 // Agent Memory Server (AMS) Container App
 module ams './ams.bicep' = {
   name: 'ams'
-  scope: resourceGroup
   params: {
     resourceToken: resourceToken
     containerAppsEnvironmentId: containerAppsEnvironment.outputs.id
@@ -91,12 +75,12 @@ module ams './ams.bicep' = {
 // Static Web App with integrated Azure Functions
 module web './web.bicep' = {
   name: 'web'
-  scope: resourceGroup
   params: {
     resourceToken: resourceToken
     environmentName: environmentName
     openAiEndpoint: openAi.outputs.endpoint
     openAiDeploymentName: openAi.outputs.gpt4oMiniDeploymentName
+    openAiApiKey: openAi.outputs.apiKey
     functionsIdentityId: identities.outputs.functionsIdentityId
     amsBaseUrl: ams.outputs.uri
     applicationInsightsConnectionString: monitoring.outputs.applicationInsightsConnectionString
@@ -109,7 +93,7 @@ module web './web.bicep' = {
 
 output AZURE_LOCATION string = location
 output AZURE_TENANT_ID string = tenant().tenantId
-output AZURE_RESOURCE_GROUP string = resourceGroup.name
+output AZURE_RESOURCE_GROUP string = resourceGroup().name
 
 output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
 

@@ -5,6 +5,8 @@ param resourceToken string
 param environmentName string
 param openAiEndpoint string
 param openAiDeploymentName string
+@secure()
+param openAiApiKey string
 param functionsIdentityId string
 param amsBaseUrl string
 param applicationInsightsConnectionString string
@@ -13,6 +15,9 @@ param applicationInsightsConnectionString string
 resource staticWebApp 'Microsoft.Web/staticSites@2024-11-01' = {
   name: 'swa-${resourceToken}'
   location: location
+  tags: {
+    'azd-service-name': 'web'
+  }
   sku: {
     name: 'Standard'
     tier: 'Standard'
@@ -43,10 +48,10 @@ resource staticWebAppSettings 'Microsoft.Web/staticSites/config@2024-11-01' = {
     // Environment
     NODE_ENV: environmentName
 
-    // Azure OpenAI Configuration (managed identity auth in production)
+    // Azure OpenAI Configuration (API key auth)
     AZURE_OPENAI_ENDPOINT: openAiEndpoint
     AZURE_OPENAI_DEPLOYMENT: openAiDeploymentName
-    AZURE_CLIENT_ID: reference(functionsIdentityId, '2023-01-31').clientId
+    AZURE_OPENAI_API_KEY: openAiApiKey
 
     // AMS Configuration
     AMS_BASE_URL: amsBaseUrl
