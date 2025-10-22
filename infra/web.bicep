@@ -30,9 +30,7 @@ resource staticWebApp 'Microsoft.Web/staticSites@2024-11-01' = {
   }
   properties: {
     buildProperties: {
-      appLocation: 'web'
-      apiLocation: 'api'
-      outputLocation: 'dist'
+      skipGithubActionWorkflowGeneration: true
     }
   }
 }

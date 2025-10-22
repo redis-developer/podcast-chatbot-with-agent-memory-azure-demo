@@ -9,6 +9,6 @@ infra:
 
 services:
   web:
-    project: ./web
+    project: ./src
     language: ts
     host: staticwebapp
