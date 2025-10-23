@@ -16,14 +16,14 @@ PodBot is a specialized AI chatbot that provides personalized podcast recommenda
 2. **Install dependencies**:
 
 ```bash
-npm run install
+npm install
 ```
 
 3. **Set up environment files**:
 
 ```bash
 cp .env.example .env
-cp api/local.settings.example.json api/local.settings.json
+cp web/api/local.settings.example.json web/api/local.settings.json
 ```
 
 4. **Add your OpenAI API key** to `.env`:
@@ -32,15 +32,7 @@ cp api/local.settings.example.json api/local.settings.json
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-5. **Also add your OpenAI API key** to `api/local.settings.json`:
-
-```json
-{
-  "Values": {
-    "OPENAI_API_KEY": "your_openai_api_key_here"
-  }
-}
-```
+5. **Add your OpenAI API key** to `web/api/local.settings.json` (replace `<your_openai_api_key_here>`)
 
 6. **Start Redis and Agent Memory Server**:
 
@@ -48,13 +40,15 @@ OPENAI_API_KEY=your_openai_api_key_here
 docker compose up
 ```
 
-7. **Start the API** (in one terminal):
+7. **Start the development servers**:
 
 ```bash
 npm run dev
 ```
 
-8. **Open your browser** to the URL shown by the SWA CLI (usually [http://localhost:4280](http://localhost:4280))
+This builds the project and starts both the Azure Functions API and the SWA CLI.
+
+8. **Open your browser** to [http://localhost:4280](http://localhost:4280)
 
 That's it! Enter a username and start chatting with PodBot about podcasts.
 
@@ -69,26 +63,29 @@ That's it! Enter a username and start chatting with PodBot about podcasts.
 
 ```
 podbot-azure/
-├── api/                    # Azure Functions (backend)
-│   ├── src/
-│   │   ├── functions/      # HTTP function definitions
-│   │   ├── services/       # Business logic
-│   │   ├── config.ts       # Configuration
-│   │   └── main.ts         # Entry point
-│   ├── host.json
-│   ├── local.settings.json
-│   └── package.json
-├── web/                    # Static Web App (frontend)
-│   ├── src/
+├── web/                         # Static Web App (frontend + backend)
+│   ├── api/                     # Azure Functions (backend)
+│   │   ├── src/
+│   │   │   ├── functions/       # HTTP function definitions
+│   │   │   ├── services/        # Business logic
+│   │   │   ├── config.ts        # Configuration
+│   │   │   └── main.ts          # Entry point
+│   │   ├── host.json
+│   │   ├── local.settings.json
+│   │   └── package.json
+│   ├── src/                     # Frontend application
 │   │   ├── main.ts
 │   │   ├── api.ts
+│   │   ├── types.ts
 │   │   └── style.css
 │   ├── index.html
 │   ├── staticwebapp.config.json
 │   └── package.json
-├── docker-compose.yaml     # Redis + AMS for local dev
-├── package.json            # Root workspace
-└── .env                    # Environment variables
+├── infra/                       # Azure Bicep templates
+├── docker-compose.yaml          # Redis + AMS for local dev
+├── azure.yaml                   # Azure Developer CLI config
+├── package.json                 # Root workspace
+└── .env                         # Environment variables
 ```
 
 ## Architecture
@@ -111,7 +108,7 @@ PodBot is built with Azure serverless technologies and containerized dependencie
 
 ### **AI & Memory**
 
-- **[OpenAI GPT-4o](https://openai.com/)** via LangChain for intelligent responses
+- **[OpenAI GPT-4o-mini](https://openai.com/)** (local dev) or **Azure OpenAI** (production) via LangChain for intelligent responses
 - **[Redis Agent Memory Server (AMS)](https://github.com/redis/agent-memory-server)** for persistent conversation context
 - Smart context window management for efficient token usage
 
@@ -167,11 +164,12 @@ curl -X DELETE http://localhost:7071/api/sessions/testuser
 
 - `OPENAI_API_KEY` - Your OpenAI API key ([get one here](https://platform.openai.com/api-keys))
 
-**`api/local.settings.json` (for Azure Functions):**
+**`web/api/local.settings.json` (for Azure Functions):**
 
 - `OPENAI_API_KEY` - Your OpenAI API key
 - `AMS_BASE_URL` - Agent Memory Server URL (default: http://localhost:8000)
 - `AMS_CONTEXT_WINDOW_MAX` - Token limit for context window (default: 4000)
+- `NODE_ENV` - Environment mode: `dev` (uses OpenAI) or `prod`/`stage` (uses Azure OpenAI)
 
 ### Optional Environment Variables (`.env`)
 
