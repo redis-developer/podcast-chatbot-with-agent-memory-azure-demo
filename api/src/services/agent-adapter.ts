@@ -59,6 +59,7 @@ function createAzureLLM(): ChatOpenAI {
     azureOpenAIApiKey: config.azureOpenAIApiKey,
     azureOpenAIEndpoint: config.azureOpenAIEndpoint,
     azureOpenAIApiDeploymentName: config.azureOpenAIDeployment,
+    azureOpenAIApiVersion: config.azureOpenAIApiVersion,
     temperature: 0.7
   })
 }

@@ -17,6 +17,12 @@ hooks:
       run: npm install && npm run build
 
 services:
+  api:
+    project: ./api
+    dist: .
+    language: ts
+    host: function
+    module: functions
   web:
     project: ./web
     dist: dist

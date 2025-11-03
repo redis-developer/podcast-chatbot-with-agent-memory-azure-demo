@@ -9,6 +9,7 @@ export const config = {
   azureOpenAIEndpoint: process.env.AZURE_OPENAI_ENDPOINT,
   azureOpenAIDeployment: process.env.AZURE_OPENAI_DEPLOYMENT,
   azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
+  azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION ?? '2024-08-01-preview',
 
   // AMS
   amsBaseUrl: process.env.AMS_BASE_URL ?? 'http://localhost:8000',

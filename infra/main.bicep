@@ -72,9 +72,9 @@ module ams './ams.bicep' = {
   }
 }
 
-// Static Web App with integrated Azure Functions
-module web './web.bicep' = {
-  name: 'web'
+// Azure Function App (API backend)
+module functions './functions.bicep' = {
+  name: 'functions'
   params: {
     resourceToken: resourceToken
     environmentName: environmentName
@@ -84,6 +84,23 @@ module web './web.bicep' = {
     functionsIdentityId: identities.outputs.functionsIdentityId
     amsBaseUrl: ams.outputs.uri
     applicationInsightsConnectionString: monitoring.outputs.applicationInsightsConnectionString
+  }
+}
+
+// Static Web App (frontend)
+module web './web.bicep' = {
+  name: 'web'
+  params: {
+    resourceToken: resourceToken
+  }
+}
+
+// Link Function App to Static Web App
+resource staticWebAppBackend 'Microsoft.Web/staticSites/linkedBackends@2024-11-01' = {
+  name: 'swa-${resourceToken}/backend'
+  properties: {
+    backendResourceId: functions.outputs.id
+    region: location
   }
 }
 
@@ -102,5 +119,6 @@ output REDIS_PORT int = redis.outputs.port
 
 output AMS_URI string = ams.outputs.uri
 
+output API_URI string = functions.outputs.uri
 output WEB_URI string = web.outputs.uri
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
