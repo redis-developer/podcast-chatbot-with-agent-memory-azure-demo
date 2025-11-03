@@ -6,7 +6,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "swa start dist --port 4280 --api-location http://localhost:7071",
+    "dev": "swa start dist --port 4280",
     "build": "vite build"
   },
   "devDependencies": {
