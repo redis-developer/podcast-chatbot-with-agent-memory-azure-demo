@@ -4,7 +4,7 @@ param resourceToken string
 var accountName = 'openai-${resourceToken}'
 var location = resourceGroup().location
 
-resource openAiAccount 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
+resource openAiAccount 'Microsoft.CognitiveServices/accounts@2025-09-01' = {
   name: accountName
   location: location
   kind: 'OpenAI'
@@ -21,7 +21,7 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
 }
 
 // Model Deployment: gpt-4o (for AMS primary generation)
-resource gpt4oDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
+resource gpt4oDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-09-01' = {
   parent: openAiAccount
   name: 'gpt-4o'
   sku: {
@@ -38,7 +38,7 @@ resource gpt4oDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-
 }
 
 // Model Deployment: gpt-4o-mini (for AMS fast tasks and Azure Functions chatbot)
-resource gpt4oMiniDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
+resource gpt4oMiniDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-09-01' = {
   parent: openAiAccount
   name: 'gpt-4o-mini'
   sku: {
@@ -58,7 +58,7 @@ resource gpt4oMiniDeployment 'Microsoft.CognitiveServices/accounts/deployments@2
 }
 
 // Model Deployment: text-embedding-3-small (for AMS semantic search)
-resource embeddingDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
+resource embeddingDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-09-01' = {
   parent: openAiAccount
   name: 'text-embedding-3-small'
   sku: {

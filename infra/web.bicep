@@ -3,8 +3,8 @@ metadata description = 'Creates an Azure Static Web App for PodBot frontend.'
 param location string = resourceGroup().location
 param resourceToken string
 
-// Azure Static Web App (frontend only)
-resource staticWebApp 'Microsoft.Web/staticSites@2024-11-01' = {
+// Azure Static Web App
+resource staticWebApp 'Microsoft.Web/staticSites@2025-03-01' = {
   name: 'swa-${resourceToken}'
   location: location
   tags: {

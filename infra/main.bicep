@@ -11,7 +11,7 @@ param location string = resourceGroup().location
 var resourceToken = toLower(uniqueString(resourceGroup().id, environmentName, location))
 
 // ==============================================================================
-// ENVIRONMENT: Shared Infrastructure & Services
+// Shared Infrastructure & Services
 // ==============================================================================
 
 // Container Apps environment for hosting AMS
@@ -40,7 +40,7 @@ module identities './identities.bicep' = {
 }
 
 // ==============================================================================
-// APPLICATION: Core Services
+// Core Services
 // ==============================================================================
 
 // Azure OpenAI Service
@@ -51,7 +51,7 @@ module openAi './openai.bicep' = {
   }
 }
 
-// Azure Managed Redis (Redis Enterprise)
+// Azure Managed Redis
 module redis './redis.bicep' = {
   name: 'redis'
   params: {
@@ -59,7 +59,7 @@ module redis './redis.bicep' = {
   }
 }
 
-// Agent Memory Server (AMS) Container App
+// Agent Memory Server Container App
 module ams './ams.bicep' = {
   name: 'ams'
   params: {
@@ -72,22 +72,11 @@ module ams './ams.bicep' = {
   }
 }
 
-// Azure Function App (API backend)
-module functions './functions.bicep' = {
-  name: 'functions'
-  params: {
-    resourceToken: resourceToken
-    environmentName: environmentName
-    openAiEndpoint: openAi.outputs.endpoint
-    openAiDeploymentName: openAi.outputs.gpt4oMiniDeploymentName
-    openAiApiKey: openAi.outputs.apiKey
-    functionsIdentityId: identities.outputs.functionsIdentityId
-    amsBaseUrl: ams.outputs.uri
-    applicationInsightsConnectionString: monitoring.outputs.applicationInsightsConnectionString
-  }
-}
+// ==============================================================================
+// Application Services
+// ==============================================================================
 
-// Static Web App (frontend)
+// Static Web App
 module web './web.bicep' = {
   name: 'web'
   params: {
@@ -95,8 +84,27 @@ module web './web.bicep' = {
   }
 }
 
+// Azure Function App
+module functions './functions.bicep' = {
+  name: 'functions'
+  params: {
+    resourceToken: resourceToken
+    environmentName: environmentName
+    openAiConfig: {
+      endpoint: openAi.outputs.endpoint
+      deploymentName: openAi.outputs.gpt4oMiniDeploymentName
+      apiKey: openAi.outputs.apiKey
+    }
+    amsConfig: {
+      baseUrl: ams.outputs.uri
+    }
+    functionsIdentityId: identities.outputs.functionsIdentityId
+    applicationInsightsConnectionString: monitoring.outputs.applicationInsightsConnectionString
+  }
+}
+
 // Link Function App to Static Web App
-resource staticWebAppBackend 'Microsoft.Web/staticSites/linkedBackends@2024-11-01' = {
+resource staticWebAppBackend 'Microsoft.Web/staticSites/linkedBackends@2025-03-01' = {
   name: 'swa-${resourceToken}/backend'
   properties: {
     backendResourceId: functions.outputs.id

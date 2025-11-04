@@ -1,18 +1,31 @@
 metadata description = 'Creates an Azure Function App for PodBot API.'
 
+// User-defined types for configuration objects
+type OpenAiConfig = {
+  endpoint: string
+  deploymentName: string
+  @secure()
+  apiKey: string
+  apiVersion: string?
+}
+
+type AmsConfig = {
+  baseUrl: string
+  contextWindowMax: string?
+}
+
 param location string = resourceGroup().location
 param resourceToken string
 param environmentName string
-param openAiEndpoint string
-param openAiDeploymentName string
-@secure()
-param openAiApiKey string
+
+param openAiConfig OpenAiConfig
+param amsConfig AmsConfig
+
 param functionsIdentityId string
-param amsBaseUrl string
 param applicationInsightsConnectionString string
 
 // Storage Account for Function App
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' = {
   name: 'stfn${resourceToken}'
   location: location
   kind: 'StorageV2'
@@ -27,7 +40,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
 }
 
 // App Service Plan (Consumption)
-resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
+resource appServicePlan 'Microsoft.Web/serverfarms@2025-03-01' = {
   name: 'plan-fn-${resourceToken}'
   location: location
   sku: {
@@ -40,7 +53,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
 }
 
 // Function App
-resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
+resource functionApp 'Microsoft.Web/sites@2025-03-01' = {
   name: 'func-${resourceToken}'
   location: location
   kind: 'functionapp,linux'
@@ -93,27 +106,27 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
         }
         {
           name: 'AZURE_OPENAI_ENDPOINT'
-          value: openAiEndpoint
+          value: openAiConfig.endpoint
         }
         {
           name: 'AZURE_OPENAI_DEPLOYMENT'
-          value: openAiDeploymentName
+          value: openAiConfig.deploymentName
         }
         {
           name: 'AZURE_OPENAI_API_KEY'
-          value: openAiApiKey
+          value: openAiConfig.apiKey
         }
         {
           name: 'AZURE_OPENAI_API_VERSION'
-          value: '2024-08-01-preview'
+          value: openAiConfig.?apiVersion ?? '2024-08-01-preview'
         }
         {
           name: 'AMS_BASE_URL'
-          value: amsBaseUrl
+          value: amsConfig.baseUrl
         }
         {
           name: 'AMS_CONTEXT_WINDOW_MAX'
-          value: '4000'
+          value: amsConfig.?contextWindowMax ?? '4000'
         }
       ]
       cors: {
