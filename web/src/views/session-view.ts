@@ -1,43 +1,56 @@
+const usernameInput = document.querySelector('#username') as HTMLInputElement
+const loadButton = document.querySelector('#load-session') as HTMLButtonElement
+const clearButton = document.querySelector('#clear-session') as HTMLButtonElement
+
 export class SessionView extends EventTarget {
-  private usernameInput: HTMLInputElement
-  private loadButton: HTMLButtonElement
-  private clearButton: HTMLButtonElement
+  #disabled = false
 
   constructor() {
     super()
-    this.usernameInput = document.querySelector('#username') as HTMLInputElement
-    this.loadButton = document.querySelector('#load-session') as HTMLButtonElement
-    this.clearButton = document.querySelector('#clear-session') as HTMLButtonElement
 
-    this.setupEventListeners()
+    loadButton.addEventListener('click', () => this.#onLoadClicked())
+    clearButton.addEventListener('click', () => this.#onClearClicked())
+    usernameInput.addEventListener('input', () => this.#onUsernameChanged())
+
+    this.#updateButtonStates()
   }
 
-  private setupEventListeners(): void {
-    this.loadButton.addEventListener('click', () => {
-      const username = this.usernameInput.value.trim()
-      this.dispatchEvent(new CustomEvent('load', { detail: { username } }))
-    })
-
-    this.clearButton.addEventListener('click', () => {
-      const username = this.usernameInput.value.trim()
-      this.dispatchEvent(new CustomEvent('clear', { detail: { username } }))
-    })
-
-    this.usernameInput.addEventListener('input', () => {
-      this.dispatchEvent(new Event('usernamechange'))
-    })
+  #onLoadClicked(): void {
+    this.dispatchEvent(new Event('load'))
   }
 
-  getUsername(): string {
-    return this.usernameInput.value.trim()
+  #onClearClicked(): void {
+    this.dispatchEvent(new Event('clear'))
   }
 
-  setLoadingState(loading: boolean): void {
-    this.loadButton.disabled = loading
-    this.clearButton.disabled = loading
+  #onUsernameChanged(): void {
+    this.#updateButtonStates()
+  }
+
+  get username(): string {
+    return usernameInput.value.trim()
+  }
+
+  get disabled(): boolean {
+    return this.#disabled || this.username.length === 0
+  }
+
+  set disabled(value: boolean) {
+    if (this.#disabled === value) return
+    this.#disabled = value
+    this.#updateButtonStates()
   }
 
   focus(): void {
-    this.usernameInput.focus()
+    usernameInput.focus()
+  }
+
+  #updateButtonStates(): void {
+    const stateChanged = loadButton.disabled !== this.disabled || clearButton.disabled !== this.disabled
+
+    loadButton.disabled = this.disabled
+    clearButton.disabled = this.disabled
+
+    if (stateChanged) this.dispatchEvent(new Event(this.disabled ? 'disabled' : 'enabled'))
   }
 }

@@ -1,63 +1,133 @@
 import { marked } from 'marked'
 import { type ChatMessage, ChatRole } from '../model'
 
-export class DisplayView {
-  private messageHistory: HTMLElement
-  private mainContainer: HTMLElement
-  private usernameInput: HTMLInputElement
+const messageHistory = document.querySelector('#message-history') as HTMLElement
+const mainContainer = document.querySelector('main') as HTMLElement
+const usernameInput = document.querySelector('#username') as HTMLInputElement
 
-  constructor() {
-    this.messageHistory = document.querySelector('#message-history') as HTMLElement
-    this.mainContainer = document.querySelector('main') as HTMLElement
-    this.usernameInput = document.querySelector('#username') as HTMLInputElement
+export class DisplayView {
+  #loading = false
+  #loadingElement: HTMLDivElement | null = null
+
+  get loading(): boolean {
+    return this.#loading
+  }
+
+  set loading(value: boolean) {
+    if (this.#loading === value) return
+    this.#loading = value
+
+    if (this.#loading) {
+      this.#showLoadingIndicator()
+    } else {
+      this.#hideLoadingIndicator()
+    }
   }
 
   displayMessage(message: ChatMessage): void {
-    const entity = document.createElement('span')
-    entity.className = 'username'
+    const item = this.#buildChatMessage(message)
+    messageHistory.appendChild(item)
+    this.#scrollToBottom()
+  }
 
-    const content = document.createElement('div')
+  displayError(error: Error): void {
+    const item = this.#buildErrorMessage(error)
+    messageHistory.appendChild(item)
+    this.#scrollToBottom()
+  }
 
-    const item = document.createElement('li')
-    item.classList.add('message')
-    item.appendChild(entity)
-    item.appendChild(content)
+  clearHistory(): void {
+    messageHistory.innerHTML = ''
+  }
 
+  #buildChatMessage(message: ChatMessage): HTMLLIElement {
     switch (message.role) {
       case ChatRole.USER:
-        item.classList.add('user-message')
-        entity.textContent = `${this.usernameInput.value.trim() ?? 'you'}> `
-        content.textContent = `${message.content}`
-        break
+        return this.#buildUserMessage(message.content)
       case ChatRole.PODBOT:
-        item.classList.add('bot-message')
-        entity.textContent = 'PodBot> '
-        content.innerHTML = marked.parse(message.content) as string
-        break
+        return this.#buildPodbotMessage(message.content)
       case ChatRole.SUMMARY:
-        item.classList.add('summary-message')
-        entity.textContent = 'Context> '
-        content.textContent = message.content
-        break
+        return this.#buildSummaryMessage(message.content)
     }
-
-    this.messageHistory.appendChild(item)
-    this.scrollToBottom()
   }
 
-  showError(message: string): void {
+  #buildErrorMessage(error: Error): HTMLLIElement {
+    const contentDiv = this.#buildTextContent(`Error: ${error.message}`)
+    return this.#buildMessageItem('system-message', contentDiv)
+  }
+
+  #buildUserMessage(content: string): HTMLLIElement {
+    const entity = this.#buildEntity(`${usernameInput.value.trim() ?? 'you'}> `)
+    const contentDiv = this.#buildTextContent(content)
+    return this.#buildMessageItem(['message', 'user-message'], [entity, contentDiv])
+  }
+
+  #buildPodbotMessage(content: string): HTMLLIElement {
+    const entity = this.#buildEntity('PodBot> ')
+    const contentDiv = this.#buildMarkdownContent(content)
+    return this.#buildMessageItem(['message', 'bot-message'], [entity, contentDiv])
+  }
+
+  #buildSummaryMessage(content: string): HTMLLIElement {
+    const entity = this.#buildEntity('Context> ')
+    const contentDiv = this.#buildTextContent(content)
+    return this.#buildMessageItem(['message', 'summary-message'], [entity, contentDiv])
+  }
+
+  #buildEntity(text: string): HTMLSpanElement {
+    const entity = document.createElement('span')
+    entity.className = 'username'
+    entity.textContent = text
+    return entity
+  }
+
+  #buildTextContent(content: string): HTMLDivElement {
+    const contentDiv = document.createElement('div')
+    contentDiv.textContent = content
+    return contentDiv
+  }
+
+  #buildMarkdownContent(content: string): HTMLDivElement {
+    const contentDiv = document.createElement('div')
+    contentDiv.innerHTML = marked.parse(content) as string
+    return contentDiv
+  }
+
+  #buildMessageItem(classOrClasses: string | string[], childOrChildren: HTMLElement | HTMLElement[]): HTMLLIElement {
+    const classes = Array.isArray(classOrClasses) ? classOrClasses : [classOrClasses]
+    const children = Array.isArray(childOrChildren) ? childOrChildren : [childOrChildren]
+
     const item = document.createElement('li')
-    item.className = 'system-message'
-    item.textContent = `Error: ${message}`
-    this.messageHistory.appendChild(item)
-    this.scrollToBottom()
+    classes.forEach(className => item.classList.add(className))
+    children.forEach(child => item.appendChild(child))
+
+    return item
   }
 
-  clear(): void {
-    this.messageHistory.innerHTML = ''
+  #scrollToBottom(): void {
+    mainContainer.scrollTop = mainContainer.scrollHeight
   }
 
-  private scrollToBottom(): void {
-    this.mainContainer.scrollTop = this.mainContainer.scrollHeight
+  #showLoadingIndicator(): void {
+    if (this.#loadingElement) return
+
+    // Create overlay
+    const overlay = document.createElement('div')
+    overlay.className = 'loading-overlay'
+
+    // Create Font Awesome compact disc icon
+    const spinner = document.createElement('i')
+    spinner.className = 'fas fa-compact-disc fa-spin fa-3x'
+
+    overlay.appendChild(spinner)
+    this.#loadingElement = overlay
+    mainContainer.appendChild(this.#loadingElement)
+  }
+
+  #hideLoadingIndicator(): void {
+    if (!this.#loadingElement) return
+
+    this.#loadingElement.remove()
+    this.#loadingElement = null
   }
 }

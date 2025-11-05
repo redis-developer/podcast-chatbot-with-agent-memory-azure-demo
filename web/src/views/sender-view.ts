@@ -1,76 +1,71 @@
+const messageInput = document.querySelector('#message-input') as HTMLInputElement
+const sendButton = document.querySelector('#send-message') as HTMLButtonElement
+const messageForm = document.querySelector('.input-group') as HTMLFormElement
+
 export class SenderView extends EventTarget {
-  private messageInput: HTMLInputElement
-  private sendButton: HTMLButtonElement
-  private messageForm: HTMLFormElement
+  #disabled = false
 
   constructor() {
     super()
-    this.messageInput = document.querySelector('#message-input') as HTMLInputElement
-    this.sendButton = document.querySelector('#send-message') as HTMLButtonElement
-    this.messageForm = document.querySelector('.input-group') as HTMLFormElement
 
-    this.setupEventListeners()
+    sendButton.addEventListener('click', () => this.#onSendClicked())
+    messageForm.addEventListener('submit', event => this.#onMessageFormSubmitted(event))
+    messageInput.addEventListener('input', () => this.#onMessageChanged())
+    messageInput.addEventListener('keypress', event => this.#onMessageKeyPressed(event))
+
+    this.#updateButtonState()
   }
 
-  private setupEventListeners(): void {
-    this.sendButton.addEventListener('click', () => {
-      this.handleSend()
-    })
+  #onSendClicked(): void {
+    this.#sendMessageEvent()
+  }
 
-    this.messageForm.addEventListener('submit', (event) => {
+  #onMessageFormSubmitted(event: Event): void {
+    event.preventDefault()
+    this.#sendMessageEvent()
+  }
+
+  #onMessageKeyPressed(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
-      this.handleSend()
-    })
-
-    this.messageInput.addEventListener('input', () => {
-      this.dispatchEvent(new Event('inputchange'))
-    })
-
-    this.messageInput.addEventListener('keypress', (event: KeyboardEvent) => {
-      if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault()
-        this.handleSend()
-      }
-    })
+      this.#sendMessageEvent()
+    }
   }
 
-  private handleSend(): void {
-    if (this.sendButton.disabled) return
+  #onMessageChanged(): void {
+    this.#updateButtonState()
+  }
 
-    const message = this.messageInput.value.trim()
-    if (message) {
-      this.dispatchEvent(new CustomEvent('send', { detail: { message } }))
-    }
+  get message(): string {
+    return messageInput.value.trim()
+  }
+
+  get disabled(): boolean {
+    return this.#disabled || this.message.length === 0
+  }
+
+  set disabled(value: boolean) {
+    if (this.#disabled === value) return
+    this.#disabled = value
+    this.#updateButtonState()
   }
 
   clearInput(): void {
-    this.messageInput.value = ''
-  }
-
-  setLoading(loading: boolean): void {
-    this.sendButton.disabled = loading
-
-    if (loading) {
-      this.sendButton.classList.add('loading')
-    } else {
-      this.sendButton.classList.remove('loading')
-    }
-  }
-
-  isLoading(): boolean {
-    return this.sendButton.classList.contains('loading')
-  }
-
-  updateButtonState(hasUsername: boolean, hasMessage: boolean): void {
-    const isLoading = this.isLoading()
-    this.sendButton.disabled = !hasUsername || isLoading || !hasMessage
+    messageInput.value = ''
   }
 
   focus(): void {
-    this.messageInput.focus()
+    messageInput.focus()
   }
 
-  hasMessage(): boolean {
-    return this.messageInput.value.trim().length > 0
+  #updateButtonState(): void {
+    const stateChanged = sendButton.disabled !== this.disabled
+    sendButton.disabled = this.disabled
+    if (stateChanged) this.dispatchEvent(new Event(this.disabled ? 'disabled' : 'enabled'))
+  }
+
+  #sendMessageEvent(): void {
+    if (this.disabled) return
+    this.dispatchEvent(new Event('send'))
   }
 }
