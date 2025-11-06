@@ -1,12 +1,12 @@
-metadata description = 'Creates an Azure Container App running the Agent Memory Server (AMS) with Redis backend.'
+metadata description = 'Creates an Azure Container App running the Agent Memory Server (AMS) with Redis backend and LiteLLM proxy for OpenAI compatibility.'
 
 param location string = resourceGroup().location
 param resourceToken string
 param containerAppsEnvironmentId string
 param redisConnectionString string
 @secure()
-param openAiApiKey string
-param openAiEndpoint string
+param openAiApiKey string  // LiteLLM master key
+param openAiEndpoint string  // LiteLLM proxy URI
 param tenantId string
 
 // Agent Memory Server Container App

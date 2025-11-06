@@ -7,24 +7,41 @@ TypeScript-based chat application using Azure Static Web Apps and Azure Function
 
 ## Project Structure
 
-**Critical**: This is a **monorepo workspace** with unusual structure:
+**Critical**: This is a **monorepo workspace** with standard structure:
 ```
-web/                           # Frontend + Backend combined
-├── api/                       # Azure Functions backend (NOTE: nested under web/)
-│   ├── src/
-│   │   ├── functions/         # HTTP function definitions
-│   │   ├── services/          # Business logic layers
-│   │   ├── config.ts
-│   │   └── main.ts            # Entry point (imports functions/sessions.ts)
-│   ├── host.json
-│   ├── local.settings.json    # Local environment config
-│   ├── package.json           # Workspace: @podbot/api
-│   └── tsconfig.json
-├── src/                       # Frontend application
-│   ├── main.ts
-│   ├── api.ts                 # Backend API client
+api/                           # Azure Functions backend
+├── src/
+│   ├── functions/             # HTTP function definitions
+│   │   ├── sessions.ts        # Route registration (app.http calls)
+│   │   ├── fetch-session-history.ts
+│   │   ├── request-and-response.ts
+│   │   ├── delete-session.ts
+│   │   └── http-responses.ts
+│   ├── services/              # Business logic layers
+│   │   ├── agent-adapter.ts   # LLM integration (OpenAI/Azure OpenAI)
+│   │   ├── chat-service.ts    # Message conversion & orchestration
+│   │   └── memory-server.ts   # AMS API client
+│   ├── config.ts
+│   └── main.ts                # Entry point (imports functions/sessions.ts)
+├── host.json
+├── local.settings.json        # Local environment config
+├── package.json               # Workspace: @podbot/api
+└── tsconfig.json
+
+web/                           # Frontend application
+├── src/
+│   ├── model/                 # MVC Model layer
+│   │   ├── chat-api.ts        # API client
+│   │   └── chat-model.ts      # Business logic
+│   ├── view/                  # MVC View layer
+│   │   ├── display-view.ts    # Chat display
+│   │   ├── session-view.ts    # Session controls
+│   │   └── sender-view.ts     # Message input
+│   ├── controller.ts          # MVC Controller
+│   ├── main.ts                # App entry point
 │   ├── types.ts
 │   └── style.css
+├── index.html
 ├── package.json               # Workspace: @podbot/web
 └── staticwebapp.config.json
 
@@ -34,7 +51,7 @@ package.json                   # Root workspace: @podbot/root
 azure.yaml                     # Azure Developer CLI config
 ```
 
-**Workspace Structure**: Root package.json defines workspaces at `web` and `web/api` (not `api`). The API is nested inside the web directory, which is unconventional but required for Azure Static Web Apps deployment.
+**Workspace Structure**: Root package.json defines workspaces at `web` and `api` as sibling directories.
 
 ## Development Commands
 
@@ -65,8 +82,8 @@ npm run build:web          # Build web only (runs in web workspace)
 npm run dev:api            # Start Azure Functions only
 npm run dev:web            # Start SWA CLI only
 
-# From web/api directory
-cd web/api
+# From api directory
+cd api
 npm run build              # TypeScript compilation with tsc + tsc-alias
 npm run dev                # Start Azure Functions (func start)
 
@@ -100,13 +117,13 @@ curl -X DELETE http://localhost:7071/api/sessions/testuser
 ## Architecture & Key Implementation Details
 
 ### Azure Functions v4 Programming Model
-- Uses `app.http()` registration pattern in `web/api/src/functions/sessions.ts`
+- Uses `app.http()` registration pattern in `api/src/functions/sessions.ts`
 - Each endpoint has separate handler file (fetch-session-history.ts, request-and-response.ts, delete-session.ts)
-- Entry point at `web/api/src/main.ts` imports `functions/sessions.ts` to trigger registration
+- Entry point at `api/src/main.ts` imports `functions/sessions.ts` to trigger registration
 - All functions registered with `authLevel: 'anonymous'` for local development
 - Single route pattern: `sessions/{username}` with different HTTP methods (GET/POST/DELETE)
 
-### TypeScript Path Aliases (web/api only)
+### TypeScript Path Aliases (api only)
 The API uses path aliases configured in tsconfig.json:
 ```typescript
 import { config } from '@/config.js'          // Maps to src/config.js
@@ -128,20 +145,36 @@ The application converts between three message formats:
 3. **Chat Messages** (ChatMessage with role: 'user'|'podbot'|'summary')
    - Used for frontend/API communication
 
-**Key conversion functions** in `web/api/src/services/chat-service.ts`:
+**Key conversion functions** in `api/src/services/chat-service.ts`:
 - `amsToLangChainMessage()` - AMS → LangChain
 - `langchainToAmsMessage()` - LangChain → AMS
 - `amsToChatMessage()` - AMS → Chat API
 - `amsContextToChatMessage()` - AMS context string → Chat summary message
 
-### Environment-Aware LLM Configuration
-The `agent-adapter.ts` service switches between OpenAI and Azure OpenAI based on `NODE_ENV`:
-- `dev`: Uses `ChatOpenAI` with direct OpenAI API (`gpt-4o-mini`)
-- `prod`/`stage`: Uses `AzureChatOpenAI` with Azure OpenAI endpoints
+### LLM Configuration via LiteLLM Proxy
+The application uses **LiteLLM** as a unified OpenAI-compatible gateway for all LLM calls:
+- **Local dev**: Direct OpenAI API using `OPENAI_API_KEY`
+- **Azure deployment**: LiteLLM proxy translates OpenAI API calls to Azure OpenAI format
 
-Required config (from `web/api/src/config.ts`):
-- Local: `OPENAI_API_KEY`
-- Azure: `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_DEPLOYMENT`, `AZURE_OPENAI_API_KEY`
+**Why LiteLLM?** Azure OpenAI has a different API structure than standard OpenAI:
+- Different URL paths (includes deployment names in path)
+- Different authentication headers (`api-key` vs `Authorization: Bearer`)
+- Requires `api-version` query parameter
+- No model in request body (specified in URL)
+
+LiteLLM provides:
+- Standard OpenAI API interface for both environments
+- Automatic translation to Azure OpenAI's different API structure
+- Unified monitoring and rate limiting
+- Easy provider switching without code changes
+
+The `agent-adapter.ts` service always uses `ChatOpenAI` class, pointing to either:
+- Direct OpenAI API (local dev)
+- LiteLLM proxy endpoint (Azure deployment, which translates to Azure OpenAI)
+
+Required config (from `api/src/config.ts`):
+- Local: `OPENAI_API_KEY` (direct OpenAI)
+- Azure: `OPENAI_API_KEY` (LiteLLM master key: `sk-1234`), `OPENAI_BASE_URL` (LiteLLM proxy URL)
 
 ### AMS Integration Details
 **Redis Agent Memory Server** manages conversation history with smart context window management.
@@ -161,16 +194,26 @@ AMS response structure includes:
 - `messages`: Recent message array (user/assistant)
 
 ### PodBot System Prompt
-Defined in `web/api/src/services/agent-adapter.ts`:
+Defined in `api/src/services/agent-adapter.ts`:
 - Specialized persona that **only** discusses podcasts
 - Politely redirects off-topic questions
 - Maintains preferences across conversations
 - Uses temperature 0.7 for creative recommendations
 
+### Frontend MVC Architecture
+The web frontend uses a clean MVC (Model-View-Controller) pattern:
+- **Model** (`chat-model.ts`): Manages data and business logic via `chat-api.ts`
+- **View** (separate view classes):
+  - `DisplayView`: Chat message display with markdown rendering
+  - `SessionView`: Username input and session management
+  - `SenderView`: Message input form
+- **Controller** (`controller.ts`): Coordinates between views and model using EventTarget pattern
+- Views extend EventTarget for custom events (load, clear, send, etc.)
+
 ### Frontend-Backend Integration
 - SWA CLI (`swa start`) proxies `/api/*` to Azure Functions (port 7071)
 - `staticwebapp.config.json` configures runtime: `node:20`
-- Frontend at `web/src/api.ts` makes fetch calls to `/api/sessions/{username}`
+- Frontend at `web/src/model/chat-api.ts` makes fetch calls to `/api/sessions/{username}`
 - Markdown rendering via `marked.js` for bot responses
 - LocalStorage persists username between sessions
 
@@ -195,7 +238,7 @@ AUTH_MODE=disabled
 LOG_LEVEL=DEBUG
 ```
 
-**`web/api/local.settings.json` (for Azure Functions)**:
+**`api/local.settings.json` (for Azure Functions)**:
 ```json
 {
   "Values": {
@@ -207,7 +250,7 @@ LOG_LEVEL=DEBUG
 }
 ```
 
-Note: `.env.example` and `web/api/local.settings.example.json` provide templates.
+Note: `.env.example` and `api/local.settings.example.json` provide templates.
 
 ## Azure Deployment
 
@@ -221,15 +264,23 @@ azd down            # Delete all resources
 **Infrastructure** (Bicep templates in `infra/`):
 - Azure Static Web Apps (frontend + API)
 - Azure Managed Redis
-- Azure Container Apps (for AMS)
+- Azure Container Apps (for AMS and LiteLLM)
 - Azure OpenAI Service
+- LiteLLM Proxy (translates OpenAI API to Azure OpenAI)
 - Application Insights
 - Managed Identity for authentication
 
+**LiteLLM Integration**:
+- Deployed as Container App alongside AMS in the same Container Apps Environment
+- Configured with Azure OpenAI credentials and deployment mappings
+- Provides internal OpenAI-compatible endpoint for Azure Functions and AMS
+- Uses simple master key (`sk-1234`) for internal authentication between services
+
 **Deployment flow** (defined in `azure.yaml`):
 1. `predeploy` hook: `npm install && npm run build`
-2. Deploy `web` service to Static Web Apps (includes API from `web/api`)
-3. Bicep provisions all Azure resources
+2. Deploy `api` service as Azure Functions
+3. Deploy `web` service to Static Web Apps
+4. Bicep provisions all Azure resources
 
 ## API Endpoints
 

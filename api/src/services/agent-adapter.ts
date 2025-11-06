@@ -1,6 +1,6 @@
 import dedent from 'dedent'
 import { SystemMessage, BaseMessage, AIMessage } from '@langchain/core/messages'
-import { ChatOpenAI, AzureChatOpenAI } from '@langchain/openai'
+import { ChatOpenAI } from '@langchain/openai'
 
 import { config } from '@/config.js'
 
@@ -35,31 +35,18 @@ export async function generateResponse(messages: BaseMessage[]): Promise<AIMessa
 }
 
 function createLLM(): ChatOpenAI {
-  switch (config.nodeEnv) {
-    case 'prod':
-    case 'stage':
-      return createAzureLLM()
-    case 'dev':
-      return createLocalLLM()
-    default:
-      throw new Error(`Unsupported NODE_ENV: ${config.nodeEnv}`)
-  }
-}
+  // In production/stage, we use LiteLLM proxy which translates to Azure OpenAI
+  // In dev, we use either LiteLLM proxy (if available) or direct OpenAI
+  // LiteLLM provides OpenAI-compatible API, so we always use ChatOpenAI class
 
-function createLocalLLM(): ChatOpenAI {
-  return new ChatOpenAI({
+  const configuration: any = {
     apiKey: config.openaiApiKey,
     model: 'gpt-4o-mini',
     temperature: 0.7
-  })
-}
+  }
 
-function createAzureLLM(): ChatOpenAI {
-  return new AzureChatOpenAI({
-    azureOpenAIApiKey: config.azureOpenAIApiKey,
-    azureOpenAIEndpoint: config.azureOpenAIEndpoint,
-    azureOpenAIApiDeploymentName: config.azureOpenAIDeployment,
-    azureOpenAIApiVersion: config.azureOpenAIApiVersion,
-    temperature: 0.7
-  })
+  // If using LiteLLM proxy (Azure deployment) or custom base URL
+  if (config.openaiBaseUrl) configuration.configuration = { baseURL: config.openaiBaseUrl }
+
+  return new ChatOpenAI(configuration)
 }

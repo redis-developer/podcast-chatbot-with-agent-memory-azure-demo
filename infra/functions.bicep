@@ -105,20 +105,12 @@ resource functionApp 'Microsoft.Web/sites@2025-03-01' = {
           value: environmentName
         }
         {
-          name: 'AZURE_OPENAI_ENDPOINT'
-          value: openAiConfig.endpoint
+          name: 'OPENAI_API_KEY'
+          value: openAiConfig.apiKey  // LiteLLM master key
         }
         {
-          name: 'AZURE_OPENAI_DEPLOYMENT'
-          value: openAiConfig.deploymentName
-        }
-        {
-          name: 'AZURE_OPENAI_API_KEY'
-          value: openAiConfig.apiKey
-        }
-        {
-          name: 'AZURE_OPENAI_API_VERSION'
-          value: openAiConfig.?apiVersion ?? '2024-08-01-preview'
+          name: 'OPENAI_BASE_URL'
+          value: openAiConfig.endpoint  // LiteLLM proxy URL
         }
         {
           name: 'AMS_BASE_URL'

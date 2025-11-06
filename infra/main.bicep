@@ -59,6 +59,21 @@ module redis './redis.bicep' = {
   }
 }
 
+// LiteLLM Proxy (OpenAI-compatible gateway for Azure OpenAI)
+module litellm './litellm.bicep' = {
+  name: 'litellm'
+  params: {
+    resourceToken: resourceToken
+    containerAppsEnvironmentId: containerAppsEnvironment.outputs.id
+    azureOpenAiApiKey: openAi.outputs.apiKey
+    azureOpenAiEndpoint: openAi.outputs.endpoint
+    azureOpenAiApiVersion: '2024-08-01-preview'
+    gpt4oDeploymentName: openAi.outputs.gpt4oDeploymentName
+    gpt4oMiniDeploymentName: openAi.outputs.gpt4oMiniDeploymentName
+    embeddingDeploymentName: openAi.outputs.embeddingDeploymentName
+  }
+}
+
 // Agent Memory Server Container App
 module ams './ams.bicep' = {
   name: 'ams'
@@ -66,8 +81,8 @@ module ams './ams.bicep' = {
     resourceToken: resourceToken
     containerAppsEnvironmentId: containerAppsEnvironment.outputs.id
     redisConnectionString: redis.outputs.connectionString
-    openAiApiKey: openAi.outputs.apiKey
-    openAiEndpoint: openAi.outputs.endpoint
+    openAiApiKey: 'sk-1234'  // LiteLLM master key for internal auth
+    openAiEndpoint: litellm.outputs.uri
     tenantId: tenant().tenantId
   }
 }
@@ -91,9 +106,9 @@ module functions './functions.bicep' = {
     resourceToken: resourceToken
     environmentName: environmentName
     openAiConfig: {
-      endpoint: openAi.outputs.endpoint
-      deploymentName: openAi.outputs.gpt4oMiniDeploymentName
-      apiKey: openAi.outputs.apiKey
+      endpoint: litellm.outputs.uri  // Use LiteLLM proxy instead of direct Azure OpenAI
+      deploymentName: 'gpt-4o-mini'  // Standard OpenAI model name (LiteLLM translates)
+      apiKey: 'sk-1234'  // LiteLLM master key
     }
     amsConfig: {
       baseUrl: ams.outputs.uri
@@ -125,6 +140,7 @@ output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
 output REDIS_HOSTNAME string = redis.outputs.hostName
 output REDIS_PORT int = redis.outputs.port
 
+output LITELLM_URI string = litellm.outputs.uri
 output AMS_URI string = ams.outputs.uri
 
 output API_URI string = functions.outputs.uri

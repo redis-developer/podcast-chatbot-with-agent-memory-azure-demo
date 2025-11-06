@@ -2,14 +2,11 @@ export const config = {
   port: process.env.PORT ?? 3001,
   nodeEnv: process.env.NODE_ENV ?? 'dev',
 
-  // OpenAI (local development)
+  // OpenAI configuration
+  // - Local dev: Direct OpenAI API with OPENAI_API_KEY
+  // - Azure deployment: LiteLLM proxy with OPENAI_BASE_URL pointing to LiteLLM
   openaiApiKey: process.env.OPENAI_API_KEY,
-
-  // Azure OpenAI (production with API key)
-  azureOpenAIEndpoint: process.env.AZURE_OPENAI_ENDPOINT,
-  azureOpenAIDeployment: process.env.AZURE_OPENAI_DEPLOYMENT,
-  azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
-  azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION,
+  openaiBaseUrl: process.env.OPENAI_BASE_URL,  // Optional: LiteLLM proxy URL or custom endpoint
 
   // AMS
   amsBaseUrl: process.env.AMS_BASE_URL ?? 'http://localhost:8000',
