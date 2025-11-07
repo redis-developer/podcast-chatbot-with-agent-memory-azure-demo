@@ -118,9 +118,15 @@ module functions './functions.bicep' = {
   }
 }
 
+// Reference the Static Web App from the module
+resource staticWebApp 'Microsoft.Web/staticSites@2025-03-01' existing = {
+  name: 'swa-${resourceToken}'
+}
+
 // Link Function App to Static Web App
 resource staticWebAppBackend 'Microsoft.Web/staticSites/linkedBackends@2025-03-01' = {
-  name: 'swa-${resourceToken}/backend'
+  parent: staticWebApp
+  name: 'backend'
   properties: {
     backendResourceId: functions.outputs.id
     region: location
