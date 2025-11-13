@@ -46,7 +46,7 @@ web/                           # Frontend application
 └── staticwebapp.config.json
 
 infra/                         # Bicep templates for Azure deployment
-docker-compose.yaml            # Redis + AMS for local dev
+docker-compose.yaml            # Redis + AMS + LiteLLM for local dev
 package.json                   # Root workspace: @podbot/root
 azure.yaml                     # Azure Developer CLI config
 ```
@@ -60,7 +60,7 @@ azure.yaml                     # Azure Developer CLI config
 # 1. Install all workspace dependencies
 npm install
 
-# 2. Start Docker services (Redis + AMS)
+# 2. Start Docker services (Redis + AMS + LiteLLM)
 docker compose up
 
 # 3. Build and start dev servers (from root)
@@ -68,6 +68,7 @@ npm run dev              # Builds both, then runs API + SWA CLI in parallel
 ```
 
 This starts:
+- LiteLLM proxy at http://localhost:4000
 - Azure Functions at http://localhost:7071
 - SWA CLI at http://localhost:4280 (proxies /api/* to Functions)
 
@@ -95,7 +96,7 @@ npm run dev                # SWA CLI (not Vite!)
 
 ### Docker Management
 ```bash
-docker compose up          # Start Redis + AMS
+docker compose up          # Start Redis + AMS + LiteLLM
 docker compose down        # Stop services
 docker compose logs -f     # View logs
 ```
@@ -152,8 +153,8 @@ The application converts between three message formats:
 - `amsContextToChatMessage()` - AMS context string → Chat summary message
 
 ### LLM Configuration via LiteLLM Proxy
-The application uses **LiteLLM** as a unified OpenAI-compatible gateway for all LLM calls:
-- **Local dev**: Direct OpenAI API using `OPENAI_API_KEY`
+The application uses **LiteLLM** as a unified OpenAI-compatible gateway for all LLM calls in both local and production environments:
+- **Local dev**: LiteLLM proxy forwards to OpenAI API using `OPENAI_API_KEY` from `.env`
 - **Azure deployment**: LiteLLM proxy translates OpenAI API calls to Azure OpenAI format
 
 **Why LiteLLM?** Azure OpenAI has a different API structure than standard OpenAI:
@@ -168,13 +169,13 @@ LiteLLM provides:
 - Unified monitoring and rate limiting
 - Easy provider switching without code changes
 
-The `agent-adapter.ts` service always uses `ChatOpenAI` class, pointing to either:
-- Direct OpenAI API (local dev)
-- LiteLLM proxy endpoint (Azure deployment, which translates to Azure OpenAI)
+The `agent-adapter.ts` service always uses `ChatOpenAI` class, pointing to LiteLLM in both environments:
+- Local dev: LiteLLM at `http://localhost:4000` (which forwards to OpenAI)
+- Azure deployment: LiteLLM proxy (which translates to Azure OpenAI)
 
 Required config (from `api/src/config.ts`):
-- Local: `OPENAI_API_KEY` (direct OpenAI)
-- Azure: `OPENAI_API_KEY` (LiteLLM master key: `sk-1234`), `OPENAI_BASE_URL` (LiteLLM proxy URL)
+- Local: `OPENAI_API_KEY=sk-1234` (LiteLLM master key), `OPENAI_BASE_URL=http://localhost:4000`
+- Azure: `OPENAI_API_KEY=sk-1234` (LiteLLM master key), `OPENAI_BASE_URL` (LiteLLM proxy URL)
 
 ### AMS Integration Details
 **Redis Agent Memory Server** manages conversation history with smart context window management.
@@ -222,8 +223,15 @@ The web frontend uses a clean MVC (Model-View-Controller) pattern:
 redis:                    # Port 6379
   - Volume: ./redis:/data (persists data locally)
 
+litellm:                  # Port 4000
+  - Image: ghcr.io/berriai/litellm:main-stable
+  - Env: OPENAI_API_KEY (from .env - your real OpenAI key)
+  - Env: LITELLM_MASTER_KEY=sk-1234 (for internal auth)
+
 agent-memory-server:      # Port 8000
   - Env: REDIS_URL=redis://redis:6379 (container network)
+  - Env: OPENAI_API_KEY=sk-1234 (LiteLLM master key)
+  - Env: OPENAI_BASE_URL=http://litellm:4000
   - Env: AUTH_MODE=disabled (no auth for local dev)
   - Env: LOG_LEVEL=DEBUG
   - Image: redislabs/agent-memory-server:latest
@@ -234,15 +242,14 @@ agent-memory-server:      # Port 8000
 **`.env` (for Docker Compose)**:
 ```
 OPENAI_API_KEY=your_key_here
-AUTH_MODE=disabled
-LOG_LEVEL=DEBUG
 ```
 
-**`api/local.settings.json` (for Azure Functions)**:
+**`api/local.settings.json` (checked into repo, no secrets)**:
 ```json
 {
   "Values": {
-    "OPENAI_API_KEY": "your_key_here",
+    "OPENAI_API_KEY": "sk-1234",
+    "OPENAI_BASE_URL": "http://localhost:4000",
     "AMS_BASE_URL": "http://localhost:8000",
     "AMS_CONTEXT_WINDOW_MAX": "4000",
     "NODE_ENV": "dev"
@@ -250,7 +257,7 @@ LOG_LEVEL=DEBUG
 }
 ```
 
-Note: `.env.example` and `api/local.settings.example.json` provide templates.
+Note: `.env.example` provides template for the real OpenAI API key needed by LiteLLM.
 
 ## Azure Deployment
 

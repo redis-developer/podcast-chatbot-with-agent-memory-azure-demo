@@ -1,5 +1,4 @@
 .env
-local.settings.json
 
 .azure/
 .claude/

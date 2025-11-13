@@ -29,7 +29,7 @@ resource litellm 'Microsoft.App/containerApps@2025-07-01' = {
       containers: [
         {
           name: 'litellm'
-          image: 'ghcr.io/berriai/litellm:main-latest'
+          image: 'ghcr.io/berriai/litellm:main-stable'
           resources: {
             cpu: json('0.5')
             memory: '1Gi'

@@ -5,7 +5,8 @@
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "NODE_ENV": "dev",
     "REDIS_URL": "redis://localhost:6379",
-    "OPENAI_API_KEY": "<your_openai_api_key_here>",
+    "OPENAI_API_KEY": "sk-1234",
+    "OPENAI_BASE_URL": "http://localhost:4000",
     "AMS_BASE_URL": "http://localhost:8000",
     "AMS_CONTEXT_WINDOW_MAX": "4000"
   }

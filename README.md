@@ -19,11 +19,10 @@ PodBot is a specialized AI chatbot that provides personalized podcast recommenda
 npm install
 ```
 
-3. **Set up environment files**:
+3. **Set up environment file**:
 
 ```bash
 cp .env.example .env
-cp web/api/local.settings.example.json web/api/local.settings.json
 ```
 
 4. **Add your OpenAI API key** to `.env`:
@@ -32,15 +31,13 @@ cp web/api/local.settings.example.json web/api/local.settings.json
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-5. **Add your OpenAI API key** to `web/api/local.settings.json` (replace `<your_openai_api_key_here>`)
-
-6. **Start Redis and Agent Memory Server**:
+5. **Start Docker services** (Redis, AMS, and LiteLLM):
 
 ```bash
 docker compose up
 ```
 
-7. **Start the development servers**:
+6. **Start the development servers**:
 
 ```bash
 npm run dev
@@ -48,7 +45,7 @@ npm run dev
 
 This builds the project and starts both the Azure Functions API and the SWA CLI.
 
-8. **Open your browser** to [http://localhost:4280](http://localhost:4280)
+7. **Open your browser** to [http://localhost:4280](http://localhost:4280)
 
 That's it! Enter a username and start chatting with PodBot about podcasts.
 
@@ -82,7 +79,7 @@ podbot-azure/
 │   ├── staticwebapp.config.json
 │   └── package.json
 ├── infra/                       # Azure Bicep templates
-├── docker-compose.yaml          # Redis + AMS for local dev
+├── docker-compose.yaml          # Redis + AMS + LiteLLM for local dev
 ├── azure.yaml                   # Azure Developer CLI config
 ├── package.json                 # Root workspace
 └── .env                         # Environment variables
@@ -108,6 +105,7 @@ PodBot is built with Azure serverless technologies and containerized dependencie
 
 ### **AI & Memory**
 
+- **[LiteLLM](https://litellm.ai/)** proxy for unified OpenAI-compatible API gateway
 - **[OpenAI GPT-4o-mini](https://openai.com/)** (local dev) or **Azure OpenAI** (production) via LangChain for intelligent responses
 - **[Redis Agent Memory Server (AMS)](https://github.com/redis/agent-memory-server)** for persistent conversation context
 - Smart context window management for efficient token usage
@@ -120,9 +118,10 @@ PodBot is built with Azure serverless technologies and containerized dependencie
 ```mermaid
 graph LR
     A[Static Web App<br/>Vite + TypeScript] --> B[Azure Functions<br/>LangChain.js + TypeScript]
+    B --> F[LiteLLM Proxy<br/>OpenAI-compatible gateway]
     B --> C[Agent Memory Server<br/>Python + FastAPI]
-    B --> D[OpenAI<br/>GPT-4o models]
-    C --> D
+    C --> F
+    F --> D[OpenAI / Azure OpenAI<br/>GPT-4o models]
     C --> E[Redis<br/>Database]
 ```
 
@@ -163,18 +162,15 @@ curl -X DELETE http://localhost:7071/api/sessions/testuser
 **`.env` (for Docker services):**
 
 - `OPENAI_API_KEY` - Your OpenAI API key ([get one here](https://platform.openai.com/api-keys))
+  - Used by LiteLLM to authenticate with OpenAI API
 
-**`web/api/local.settings.json` (for Azure Functions):**
+**`api/local.settings.json` (checked into repo, no setup needed):**
 
-- `OPENAI_API_KEY` - Your OpenAI API key
-- `AMS_BASE_URL` - Agent Memory Server URL (default: http://localhost:8000)
-- `AMS_CONTEXT_WINDOW_MAX` - Token limit for context window (default: 4000)
+- `OPENAI_API_KEY` - Set to `sk-1234` (LiteLLM master key for internal auth)
+- `OPENAI_BASE_URL` - Set to `http://localhost:4000` (LiteLLM proxy)
+- `AMS_BASE_URL` - Agent Memory Server URL (http://localhost:8000)
+- `AMS_CONTEXT_WINDOW_MAX` - Token limit for context window (4000)
 - `NODE_ENV` - Environment mode: `dev` (uses OpenAI) or `prod`/`stage` (uses Azure OpenAI)
-
-### Optional Environment Variables (`.env`)
-
-- `AUTH_MODE` - AMS authentication mode (default: disabled)
-- `LOG_LEVEL` - AMS logging level (default: DEBUG)
 
 ## Local Services
 
@@ -184,6 +180,7 @@ When running locally, the application uses these services:
 | ----------------------- | ---- | ---------------------------------------- |
 | **SWA CLI**             | 4280 | Static Web App dev server with API proxy |
 | **Azure Functions**     | 7071 | Backend API (Azure Functions runtime)    |
+| **LiteLLM**             | 4000 | OpenAI-compatible API gateway (Docker)   |
 | **agent-memory-server** | 8000 | Memory management service (Docker)       |
 | **redis**               | 6379 | Database for session storage (Docker)    |
 
