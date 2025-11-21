@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "useDefineForClassFields": true,
     "module": "ESNext",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"],
     "skipLibCheck": true,
+    "types": ["vite/client", "svelte"],
+    "verbatimModuleSyntax": true,
+    "useDefineForClassFields": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
     "moduleDetection": "force",
+    "allowImportingTsExtensions": true,
+
+    /* Build output */
     "noEmit": true,
 
     /* Linting */
@@ -19,7 +21,18 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    /* Path Aliases */
+    "paths": {
+      "@root/*": ["./*"],
+      "@app/*": ["./src/app/*"],
+      "@views/*": ["./src/views/*"],
+      "@components/*": ["./src/components/*"],
+      "@services/*": ["./src/services/*"]
+    },
+    "resolveJsonModule": true
   },
-  "include": ["src"]
+  "include": ["src", "package.json"],
+  "exclude": ["node_modules", "dist"]
 }

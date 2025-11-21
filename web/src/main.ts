@@ -1,7 +1,7 @@
-import './style.css'
+import { mount } from 'svelte'
+import App from './App.svelte'
 
-import { AppController } from './controller'
+const target = document.body
+const app = mount(App, { target })
 
-// Initialize and start application
-const app = new AppController()
-app.start()
+export default app

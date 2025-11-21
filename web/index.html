@@ -1,37 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PodBot - AI Podcast Assistant</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/src/styles.css" />
     <script type="module" src="/src/main.ts" defer></script>
   </head>
-  <body>
-    <header>
-      <i class="fas fa-microphone"></i>
-      <h1>PodBot</h1>
-      <h2 class="subtitle">Your AI-powered podcast recommendation assistant</h2>
-      <input type="text" id="username" placeholder="Session Name" autocomplete="off" data-1p-ignore />
-      <button id="load-session" title="Load Session" type="button">
-        <i class="fas fa-download"></i>
-        <span class="button-text">Load</span>
-      </button>
-      <button id="clear-session" title="Clear Session" type="button">
-        <i class="fas fa-trash"></i>
-        <span class="button-text">Clear</span>
-      </button>
-    </header>
-    <main>
-      <ul class="message-history" id="message-history"></ul>
-    </main>
-    <footer>
-      <form class="input-group">
-        <input type="text" id="message-input" placeholder="Type your message about podcasts..." />
-        <button id="send-message" title="Send Message" type="submit">
-          <i class="fas fa-paper-plane"></i>
-          <span class="button-text">Send</span>
-        </button>
-      </form>
-    </footer>
-  </body>
+  <body
+    class="h-screen flex flex-col overflow-hidden bg-redis-light-gray dark:bg-redis-midnight text-redis-black dark:text-redis-white"
+  ></body>
 </html>
