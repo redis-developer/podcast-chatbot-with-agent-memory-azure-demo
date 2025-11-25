@@ -1,36 +1,29 @@
-import { ChatApi, type HistoryResponse } from './chat-api'
-import type { ChatMessage } from '@root/src/app/chat-state.svelte'
+import type { ChatMessage } from '@state/chat-state.svelte'
 
-export class ChatService {
-  #api: ChatApi
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
 
-  constructor() {
-    this.#api = new ChatApi()
-  }
+export async function loadMessages(sessionId: string, username: string): Promise<ChatMessage[]> {
+  await delay(500)
 
-  async fetchHistory(sessionId: string, username: string): Promise<ChatMessage[]> {
-    const history = await this.#api.fetchSessionHistory(sessionId, username)
-    return this.#convertHistoryToMessages(history)
-  }
+  return [
+    { role: 'user', content: 'Can you recommend some history podcasts?' },
+    {
+      role: 'podbot',
+      content:
+        "I would recommend **Hardcore History** by Dan Carlin. It's an excellent deep dive into various historical topics."
+    },
+    { role: 'user', content: 'What about something shorter?' },
+    {
+      role: 'podbot',
+      content: 'For shorter episodes, try **History in 10 Minutes** or **Stuff You Missed in History Class**.'
+    }
+  ]
+}
 
-  async sendMessage(sessionId: string, username: string, message: string): Promise<string> {
-    const response = await this.#api.sendMessage(sessionId, username, { message })
-    return response.response
-  }
+export async function sendMessage(sessionId: string, username: string, content: string): Promise<string> {
+  await delay(1000)
 
-  async clearSession(sessionId: string, username: string): Promise<void> {
-    await this.#api.clearSession(sessionId, username)
-  }
-
-  #convertHistoryToMessages(history: HistoryResponse): ChatMessage[] {
-    return history.map(item => {
-      if (item.role === 'summary') {
-        return { role: 'summary', content: item.content }
-      } else if (item.role === 'user') {
-        return { role: 'user', content: item.content }
-      } else {
-        return { role: 'podbot', content: item.content }
-      }
-    })
-  }
+  return `Thanks for your message: "${content}". This is a stubbed response.`
 }

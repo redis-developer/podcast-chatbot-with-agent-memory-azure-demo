@@ -1,65 +1,40 @@
 <script lang="ts">
-  import AppRouter, { Route } from '@root/src/app-router.svelte'
-  import AppState from '@root/src/state/app-state.svelte'
+  import { Route } from '@src/app-router.svelte'
+  import HeaderViewModel from './header-view-model.svelte'
 
-  const appRouter = AppRouter.instance
-  const appState = AppState.instance
+  const viewModel = HeaderViewModel.instance
 
-  let username = $derived(appState.username)
+  const ACTIVE_CLASS = 'p-2 transition-colors text-gray-400 cursor-default'
+  const INACTIVE_CLASS =
+    'p-2 transition-colors text-redis-black dark:text-redis-white hover:text-redis-hyper cursor-pointer'
 
-  function handleLogout() {
-    appState.logout()
-    appRouter.routeToLogin()
-  }
-
-  function isActive(route: Route): string {
-    return appRouter.currentRoute === route
-      ? 'text-gray-400 cursor-default'
-      : 'text-redis-black dark:text-redis-white hover:text-redis-hyper cursor-pointer'
-  }
+  const chatButtonClass = $derived(viewModel.isActiveRoute(Route.Chat) ? ACTIVE_CLASS : INACTIVE_CLASS)
+  const contextButtonClass = $derived(viewModel.isActiveRoute(Route.Context) ? ACTIVE_CLASS : INACTIVE_CLASS)
+  const memoryButtonClass = $derived(viewModel.isActiveRoute(Route.Memory) ? ACTIVE_CLASS : INACTIVE_CLASS)
+  const logoutButtonClass = INACTIVE_CLASS
 </script>
 
-{#if appState.isLoggedIn}
+{#if viewModel.isLoggedIn}
   <div class="flex items-center gap-2">
-    <button
-      type="button"
-      onclick={() => appRouter.routeToChat()}
-      class="p-2 transition-colors {isActive(Route.Chat)}"
-      title="Chat"
-    >
+    <button type="button" onclick={viewModel.navigateToChat} class={chatButtonClass} title="Chat">
       <i class="fa-solid fa-comments text-lg"></i>
     </button>
 
-    <button
-      type="button"
-      onclick={() => appRouter.routeToContext()}
-      class="p-2 transition-colors {isActive(Route.Context)}"
-      title="Context"
-    >
+    <button type="button" onclick={viewModel.navigateToContext} class={contextButtonClass} title="Context">
       <i class="fa-solid fa-note-sticky text-lg"></i>
     </button>
 
-    <button
-      type="button"
-      onclick={() => appRouter.routeToMemory()}
-      class="p-2 transition-colors {isActive(Route.Memory)}"
-      title="Memory"
-    >
+    <button type="button" onclick={viewModel.navigateToMemory} class={memoryButtonClass} title="Memory">
       <i class="fa-solid fa-brain text-lg"></i>
     </button>
 
     <div class="w-px h-6 bg-redis-black-30 dark:bg-redis-dusk-70 mx-2"></div>
 
-    <span class="text-sm text-redis-black dark:text-redis-white font-mono"
-      >Logged in as <span class="text-redis-hyper">{username}</span></span
-    >
+    <span class="text-sm text-redis-black dark:text-redis-white font-mono">
+      Logged in as <span class="text-redis-hyper">{viewModel.username}</span>
+    </span>
 
-    <button
-      type="button"
-      onclick={handleLogout}
-      class="p-2 text-redis-black dark:text-redis-white hover:text-redis-hyper transition-colors cursor-pointer"
-      title="Logout"
-    >
+    <button type="button" onclick={viewModel.logout} class={logoutButtonClass} title="Logout">
       <i class="fa-solid fa-right-from-bracket text-lg"></i>
     </button>
   </div>

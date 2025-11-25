@@ -5,9 +5,9 @@
   import Footer from '@components/Footer.svelte'
   import BusyOverlay from '@components/BusyOverlay.svelte'
   import LoginView from '@views/LoginView.svelte'
-  import ChatView from '@views/chat/ChatView.svelte'
-  import ContextView from '@views/context/ContextView.svelte'
-  import MemoryView from '@views/memory/MemoryView.svelte'
+  import ChatView from '@views/ChatView.svelte'
+  import ContextView from '@views/ContextView.svelte'
+  import MemoryView from '@views/MemoryView.svelte'
 
   const appRouter = AppRouter.instance
   const appState = AppState.instance

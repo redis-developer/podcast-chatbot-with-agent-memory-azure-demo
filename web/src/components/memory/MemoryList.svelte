@@ -1,16 +1,16 @@
 <script lang="ts">
-  import AppState from '@root/src/state/app-state.svelte'
+  import MemoryViewModel from '@components/memory/memory-view-model.svelte'
   import MemoryItem from './MemoryItem.svelte'
 
-  const appState = AppState.instance
+  const viewModel = MemoryViewModel.instance
 </script>
 
-{#if appState.hasMemories}
+{#if viewModel.hasMemories}
   <h3 class="text-sm font-semibold uppercase tracking-wide text-redis-black-50 dark:text-redis-dusk-50 mb-2">
-    Memories ({appState.memoryCount})
+    Memories ({viewModel.memoryCount})
   </h3>
   <ul class="space-y-3">
-    {#each appState.memories as memory}
+    {#each viewModel.memories as memory}
       <MemoryItem content={memory.content} created={memory.created} />
     {/each}
   </ul>

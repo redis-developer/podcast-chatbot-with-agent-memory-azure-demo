@@ -1,6 +1,7 @@
 import AppRouter from '@src/app-router.svelte'
 import AppState from '@state/app-state.svelte'
 import UserState from '@state/user-state.svelte'
+import SessionState from '@state/session-state.svelte'
 
 export default class LoginViewModel {
   static #instance: LoginViewModel
@@ -13,11 +14,13 @@ export default class LoginViewModel {
   #appRouter: AppRouter
   #appState: AppState
   #userState: UserState
+  #sessionState: SessionState
 
   private constructor() {
     this.#userState = UserState.instance
     this.#appState = AppState.instance
     this.#appRouter = AppRouter.instance
+    this.#sessionState = SessionState.instance
   }
 
   static get instance(): LoginViewModel {
@@ -57,19 +60,41 @@ export default class LoginViewModel {
     event.preventDefault()
 
     this.#appState.showOverlay()
-    const success = await this.#userState.login(this.trimmedUsername, this.#password)
+    try {
+      const success = await this.#userState.login(this.trimmedUsername, this.#password)
+      if (success) {
+        await this.#handleLoginSuccess()
+      } else {
+        this.#handleLoginFailure()
+      }
+    } finally {
+      this.#appState.hideOverlay()
+    }
+  }
 
-    if (success) {
-      this.#hasLoginError = false
-      this.#username = ''
-      this.#password = ''
+  #handleLoginSuccess = async (): Promise<void> => {
+    this.#hasLoginError = false
 
-      this.#appRouter.routeToChat()
-    } else {
-      this.#hasLoginError = true
-      this.#password = ''
+    // Load sessions for the user
+    await this.#sessionState.loadSessions(this.trimmedUsername)
+
+    // If no sessions exist, create one
+    if (!this.#sessionState.hasSessions) {
+      await this.#sessionState.createSession(this.trimmedUsername)
     }
 
-    this.#appState.hideOverlay()
+    // Clear form
+    this.#username = ''
+    this.#password = ''
+
+    // Navigate to chat
+    this.#appRouter.routeToChat()
+  }
+
+  #handleLoginFailure(): void {
+    this.#hasLoginError = true
+
+    // Clear password
+    this.#password = ''
   }
 }

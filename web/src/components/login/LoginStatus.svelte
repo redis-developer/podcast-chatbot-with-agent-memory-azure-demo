@@ -9,7 +9,7 @@
   const statusMessage = $derived(
     viewModel.hasLoginError
       ? 'Invalid password. Use "password" to login.'
-      : 'Enter any username and password to get started. Password is required but will be ignored.'
+      : 'Enter any username. Password is required and must be "password".'
   )
 </script>
 

@@ -1,9 +1,9 @@
 <script lang="ts">
-  import AppState from '@root/src/state/app-state.svelte'
+  import MemoryViewModel from '@components/memory/memory-view-model.svelte'
   import MemoryList from './MemoryList.svelte'
   import InfoCard from '@components/InfoCard.svelte'
 
-  const appState = AppState.instance
+  const viewModel = MemoryViewModel.instance
 </script>
 
 <div class="flex-1 flex flex-col min-h-0 p-5 overflow-y-auto">
@@ -17,7 +17,7 @@
     reference.
   </p>
 
-  {#if appState.hasMemories}
+  {#if viewModel.hasMemories}
     <MemoryList />
   {:else}
     <InfoCard

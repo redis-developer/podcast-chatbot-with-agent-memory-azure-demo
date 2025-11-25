@@ -1,10 +1,10 @@
 <script lang="ts">
-  import AppState from '@root/src/state/app-state.svelte'
+  import ContextViewModel from '@components/context/context-view-model.svelte'
   import ContextSummary from './ContextSummary.svelte'
   import ContextMessages from './ContextMessages.svelte'
   import InfoCard from '@components/InfoCard.svelte'
 
-  const appState = AppState.instance
+  const viewModel = ContextViewModel.instance
 </script>
 
 <div class="flex-1 flex flex-col min-h-0 p-5 overflow-y-auto">
@@ -18,7 +18,7 @@
     messages and recent conversation history.
   </p>
 
-  {#if appState.hasContextSummary || appState.contextMessageCount > 0}
+  {#if viewModel.hasSummary || viewModel.hasMessages}
     <ContextSummary />
     <ContextMessages />
   {:else}

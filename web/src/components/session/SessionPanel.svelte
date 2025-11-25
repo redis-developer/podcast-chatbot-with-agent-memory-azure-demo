@@ -1,12 +1,8 @@
 <script lang="ts">
-  import AppState from '@root/src/state/app-state.svelte'
+  import SessionViewModel from './session-view-model.svelte'
   import SessionList from './SessionList.svelte'
 
-  const appState = AppState.instance
-
-  async function createNewSession() {
-    await appState.createSession()
-  }
+  const viewModel = SessionViewModel.instance
 </script>
 
 <aside
@@ -14,7 +10,7 @@
 >
   <button
     type="button"
-    onclick={createNewSession}
+    onclick={viewModel.createSession}
     class="m-4 bg-redis-hyper hover:bg-redis-deep-hyper text-white px-4 py-2 font-sans text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
   >
     <i class="fa-solid fa-plus"></i>
