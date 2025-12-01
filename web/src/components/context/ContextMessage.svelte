@@ -1,5 +1,5 @@
 <script lang="ts">
-  type MessageRole = 'user' | 'assistant'
+  type MessageRole = 'user' | 'podbot'
 
   interface Props {
     role: MessageRole
@@ -19,6 +19,12 @@
     {role}
   </h4>
   <p class="text-sm text-redis-black dark:text-redis-white font-mono leading-relaxed">
-    {content}
+    {@html content
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/\r?\n/g, '<br>')}
   </p>
 </li>

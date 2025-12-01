@@ -12,7 +12,7 @@ export type ChatMessage = {
 
 // Context message types (from AMS)
 export type ContextMessage = {
-  role: 'user' | 'assistant'
+  role: 'user' | 'podbot'
   content: string
 }
 
