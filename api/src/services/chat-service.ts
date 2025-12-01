@@ -2,7 +2,12 @@ import type { InvocationContext } from '@azure/functions'
 
 import { config } from '@/config.js'
 import { generateResponse, LLM_Role } from '@adapters/llm-adapter.js'
-import { readWorkingMemory, replaceWorkingMemory, AMS_Role } from '@adapters/memory-server-adapter.js'
+import {
+  readWorkingMemory,
+  replaceWorkingMemory,
+  searchLongTermMemories,
+  AMS_Role
+} from '@adapters/memory-server-adapter.js'
 import { appendToChat, createUserSession, listUserSessions, readChat } from '@adapters/redis-storage-adapter.js'
 import type { LLM_Message } from '@adapters/llm-adapter.js'
 import type { AMS_Message, AMS_WorkingMemory } from '@adapters/memory-server-adapter.js'
@@ -32,6 +37,7 @@ export type Memory = {
   id: string
   content: string
   createdAt: string // ISO 8601 date string
+  topics: string[]
 }
 
 export type Context = {
@@ -198,9 +204,26 @@ export async function sendMessage(
  * Fetch all long-term memories for a user
  */
 export async function fetchUserMemories(username: string, invocationContext: InvocationContext): Promise<Memory[]> {
-  // TODO: Implement when AMS long-term memory API is available
-  invocationContext.log(`Fetching memories for podbot.${username} (not yet implemented)`)
-  return []
+  try {
+    invocationContext.log(`Fetching long-term memories for podbot.${username}`)
+
+    // Search AMS long-term memories with broad query to get all memories
+    const amsMemories = await searchLongTermMemories('podbot', username, invocationContext)
+
+    // Convert AMS_Memory to Memory format
+    const memories: Memory[] = amsMemories.map(mem => ({
+      id: mem.id,
+      content: mem.text,
+      createdAt: mem.created_at,
+      topics: mem.topics
+    }))
+
+    invocationContext.log(`Found ${memories.length} long-term memories for podbot.${username}`)
+    return memories
+  } catch (error) {
+    invocationContext.error(`Error fetching long-term memories for podbot.${username}`, error)
+    return []
+  }
 }
 
 /**
@@ -223,7 +246,8 @@ async function fetchContext(
       relevantMemories: memories.map(mem => ({
         id: mem.id,
         content: mem.text,
-        createdAt: mem.created_at
+        createdAt: mem.created_at,
+        topics: mem.topics
       }))
     }
   } catch (error) {

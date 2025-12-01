@@ -20,6 +20,12 @@ export type AMS_Memory = {
   [key: string]: unknown // AMS returns additional fields that need to be passed around but aren't used
 }
 
+export type AMS_SearchResponse = {
+  memories: AMS_Memory[]
+  total: number
+  next_offset: string | null
+}
+
 export type AMS_WorkingMemory = {
   namespace: string
   user_id: string
@@ -118,4 +124,55 @@ export async function replaceWorkingMemory(
   invocationContext.log(`[AMS PUT] Response:`, JSON.stringify(data, null, 2))
 
   return data
+}
+
+/**
+ * Search long-term memories for a user
+ * Uses a broad search query with high limit to retrieve all memories via KNN
+ */
+export async function searchLongTermMemories(
+  namespace: string,
+  userId: string,
+  invocationContext: InvocationContext
+): Promise<AMS_Memory[]> {
+  // Build the request URL
+  const url = new URL(`${config.amsBaseUrl}/v1/long-term-memory/search`)
+  url.searchParams.set('namespace', namespace)
+  url.searchParams.set('user_id', userId)
+
+  invocationContext.log(`[AMS POST] ${url.toString()}`)
+
+  // Use a broad search query to get all memories via KNN
+  const requestBody = {
+    text: 'user preferences interests likes dislikes experiences memories',
+    limit: 100 // Maximum limit allowed by AMS
+  }
+
+  // Make the POST request
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Client-Version': '0.12.0'
+    },
+    body: JSON.stringify(requestBody)
+  })
+
+  // Return empty array for 404 (no memories yet)
+  if (response.status === 404) {
+    invocationContext.log(`[AMS POST] No memories found, returning empty array`)
+    return []
+  }
+
+  // Log and throw on other errors
+  if (!response.ok) {
+    invocationContext.error(`Failed to search long-term memories: ${response.statusText}`)
+    throw new Error(`Failed to search long-term memories: ${response.statusText}`)
+  }
+
+  // Parse the search response
+  const data = (await response.json()) as AMS_SearchResponse
+  invocationContext.log(`[AMS POST] Found ${data.total} memories`)
+
+  return data.memories
 }

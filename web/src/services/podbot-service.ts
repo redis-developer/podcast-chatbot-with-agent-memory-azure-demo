@@ -21,6 +21,7 @@ export type Memory = {
   id: string
   content: string
   createdAt: string // ISO 8601 date string
+  topics: string[]
 }
 
 // Context types
