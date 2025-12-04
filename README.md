@@ -10,8 +10,8 @@ The **Podcast Chatbot**—or **Podbot** for short—demonstrates how Redis Agent
 - [Setup](#setup)
 - [Running the Demo](#running-the-demo)
 - [Slide Deck](#slide-deck)
-- [Architecture](#architecture)
 - [Known Issues](#known-issues)
+- [Architecture](#architecture)
 - [Resources](#resources)
 - [Maintainers](#maintainers)
 - [License](#license)
@@ -19,7 +19,7 @@ The **Podcast Chatbot**—or **Podbot** for short—demonstrates how Redis Agent
 ## Demo Objectives
 
 - Highlight [Redis Agent Memory Server](https://redis.github.io/agent-memory-server/) (AMS) to manage short- and long-term memory for AI workflows.
-- Demonstrate integration of AMS with Azure Static Web Apps, Azure Functions, and Azure Managed Redis.
+- Demonstrate integration of AMS with [Azure](https://azure.microsoft.com/) including Static Web Apps, Functions, and Azure Managed Redis.
 - Show [LiteLLM](https://www.litellm.ai/) as a proxy for Azure OpenAI API access.
 
 ## Setup
@@ -29,13 +29,14 @@ The **Podcast Chatbot**—or **Podbot** for short—demonstrates how Redis Agent
 **For Local Development:**
 
 - [Node.js](https://nodejs.org/) v20+
-- [Docker](https://www.docker.com/) 24+ (for local Redis, AMS, and LiteLLM)
+- [Docker](https://www.docker.com/) for local Redis, AMS, and LiteLLM
 - [OpenAI API Key](https://platform.openai.com/api-keys)
 
 **For Azure Deployment:**
 
 - [Azure](https://portal.azure.com/) subscription
-- Azure CLI (`az`) and Azure Developer CLI (`azd`) installed
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
+- [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
 
 ### Configuration
 
