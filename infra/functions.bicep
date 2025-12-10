@@ -16,7 +16,6 @@ type AmsConfig = {
 
 param location string = resourceGroup().location
 param resourceToken string
-param environmentName string
 
 param redisConnectionString string
 param openAiConfig OpenAiConfig
@@ -100,10 +99,6 @@ resource functionApp 'Microsoft.Web/sites@2025-03-01' = {
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
           value: applicationInsightsConnectionString
-        }
-        {
-          name: 'NODE_ENV'
-          value: environmentName
         }
         {
           name: 'OPENAI_API_KEY'

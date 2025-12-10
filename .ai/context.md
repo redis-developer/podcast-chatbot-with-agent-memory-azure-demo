@@ -351,8 +351,7 @@ OPENAI_API_KEY=your_key_here
     "OPENAI_API_KEY": "sk-1234",
     "OPENAI_BASE_URL": "http://localhost:4000",
     "AMS_BASE_URL": "http://localhost:8000",
-    "AMS_CONTEXT_WINDOW_MAX": "4000",
-    "NODE_ENV": "dev"
+    "AMS_CONTEXT_WINDOW_MAX": "4000"
   }
 }
 ```

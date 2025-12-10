@@ -44,8 +44,8 @@ export async function generateResponse(messages: LLM_Message[], invocationContex
   // Call the LLM
   const client = getOpenAIClient(invocationContext)
   const response = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
-    temperature: 0.7,
+    model: config.openaiModel,
+    temperature: config.openaiTemperature,
     messages: messagesWithSystem
   })
 
@@ -57,8 +57,10 @@ export async function generateResponse(messages: LLM_Message[], invocationContex
 
 function getOpenAIClient(invocationContext: InvocationContext): OpenAI {
   if (!openai) {
-    const configuration: any = { apiKey: config.openaiApiKey }
-    if (config.openaiBaseUrl) configuration.baseURL = config.openaiBaseUrl
+    const configuration: any = {
+      apiKey: config.openaiApiKey,
+      baseURL: config.openaiBaseUrl
+    }
 
     invocationContext.log('LLM Configuration:', configuration)
 
