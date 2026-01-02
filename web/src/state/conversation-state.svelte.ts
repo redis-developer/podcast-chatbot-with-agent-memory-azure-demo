@@ -73,8 +73,10 @@ export default class ConversationState {
       this.#chatHistory = chatAndContext.chatHistory
       this.#context = chatAndContext.context
     } catch (error) {
+      // On error, show the user's message and the error response
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      this.#chatHistory.push({ role: 'podbot', content: `Error: ${errorMessage}` })
+      this.#chatHistory.push({ role: 'user', content })
+      this.#chatHistory.push({ role: 'assistant', content: `Error: ${errorMessage}` })
     }
   }
 

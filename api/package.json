@@ -4,11 +4,16 @@
   "description": "Azure Functions API for PodBot",
   "author": "Guy Royse <guy@guy.dev>",
   "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "type": "module",
   "main": "dist/main.js",
   "scripts": {
     "dev": "func start",
-    "build": "tsc && tsc-alias"
+    "build": "tsc && tsc-alias",
+    "clean": "rimraf dist"
   },
   "dependencies": {
     "@azure/functions": "^4.5.0",
@@ -21,6 +26,8 @@
   "devDependencies": {
     "@types/dedent": "^0.7.2",
     "@types/node": "^24.5.2",
+    "azure-functions-core-tools": "^4.6.0",
+    "rimraf": "^6.1.2",
     "tsc-alias": "^1.8.16",
     "typescript": "^5.9.2"
   }
